@@ -1,6 +1,7 @@
 {
   "name": "Halal Pos",
   "short_name": "HalalPos",
+  "start_url": "../index.html",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
