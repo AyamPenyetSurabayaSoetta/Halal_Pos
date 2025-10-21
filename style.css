@@ -1,0 +1,237 @@
+        body {
+            font-family: 'Inter', sans-serif;
+
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked+.slider {
+            background-color: #2563eb;
+        }
+        
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+        
+        .modal-content,
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .modal-overlay,
+        #sidebar-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Gaya untuk Konten Nota */
+        .receipt-content {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .receipt-content hr {
+            border-top: 1px dashed #999;
+            margin: 8px 0;
+        }
+        
+        /* Print-specific styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            #print-area,
+            #print-area * {
+                visibility: visible;
+            }
+            
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+        
+        /* Gaya untuk Konten Ringkasan Penjualan */
+        #summary-text-content {
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            color: #333;
+        }
+
+/* Media Queries untuk Desktop */
+@media (min-width: 768px) {
+    .sidebar {
+        width: 250px; /* Lebar sidebar */
+        float: left; /* Membuat sidebar bergeser ke kiri */
+    }
+
+    .modal-content {
+        margin-left: 260px; /* Bergeser sesuai dengan lebar sidebar */
+    }
+
+    #print-area {
+        padding: 20px; /* Beri padding pada area cetak agar lebih rapi */
+    }
+    
+    .receipt-content, 
+    #summary-text-content {
+        font-size: 16px; /* Ukuran font sedikit lebih besar untuk desktop */
+    }
+}
+
+/* Menghindari konten yang melebihi lebar layar */
+@media (min-width: 1200px) {
+    .receipt-content, 
+    #summary-text-content {
+        max-width: 800px; /* Maksimum lebar konten */
+        margin: 0 auto; /* Pusatkan konten */
+    }
+}
+/* ===== KODE BARU UNTUK RESPONSIVE DESKTOP ===== */
+
+/* Terapkan gaya ini untuk layar besar (lebar 1024px atau lebih) */
+@media (min-width: 1024px) {
+
+    /* 1. Membuat Sidebar Navigasi selalu terlihat di kiri */
+    #sidebar {
+        transform: translateX(0); /* Menampilkan sidebar */
+        z-index: 100; /* Memastikan di atas elemen lain */
+    }
+
+    #sidebar-overlay {
+        display: none; /* Sembunyikan overlay hitam di desktop */
+    }
+
+    /* 2. Mengubah modal produk menjadi panel samping permanen */
+    #product-modal-overlay {
+        /* Ubah dari modal menjadi panel biasa */
+        position: fixed; /* Tetap di layar saat scroll */
+        top: 0;
+        left: 288px; /* Posisi di sebelah kanan sidebar (lebar sidebar 288px) */
+        width: 55%; /* Lebar panel produk */
+        height: 100%;
+        display: flex !important; /* Paksa untuk selalu terlihat */
+        background: none; /* Hilangkan latar belakang hitam modal */
+        padding: 0;
+        z-index: 50;
+    }
+
+    #product-modal-overlay .modal-content {
+        /* Atur agar konten modal mengisi panel */
+        transform: scale(1) !important;
+        opacity: 1 !important;
+        height: 100%;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+        box-shadow: none; /* Hilangkan bayangan modal */
+        border-right: 1px solid #e5e7eb; /* Beri garis pemisah */
+    }
+
+    /* Sembunyikan tombol tutup di panel produk desktop */
+    #close-product-modal-btn {
+        display: none;
+    }
+    
+    /* Sembunyikan ringkasan keranjang di bawah panel produk, karena keranjang sudah terlihat di kanan */
+    #modal-cart-summary {
+        display: none;
+    }
+    
+    /* 3. Posisikan Kontainer Nota Utama di Sebelah Kanan */
+    #app-container {
+        margin-left: calc(55% + 288px); /* Geser ke kanan selebar sidebar + panel produk */
+        max-width: none; /* Hapus batasan lebar */
+        height: 100vh; /* Tinggi penuh layar */
+        padding-bottom: 0; /* Hapus padding bawah */
+    }
+
+    /* Atur agar area item nota bisa di-scroll */
+    #app-container main {
+        overflow-y: auto;
+        flex-grow: 1; /* Pastikan ia mengisi ruang yang tersedia */
+    }
+
+    #app-container footer {
+        position: static; /* Ubah dari 'fixed' menjadi 'static' */
+        flex-shrink: 0; /* Mencegah footer menyusut */
+    }
+
+    /* 4. Sembunyikan elemen yang tidak perlu di desktop */
+    #add-product-btn,         /* Tombol plus (+) */
+    #menu-btn,                /* Tombol menu hamburger */
+    #nota-aktif-btn,          /* Tombol Nota Aktif (bisa diakses dari sidebar) */
+    #daftar-meja-btn {         /* Tombol Daftar Meja (bisa diakses dari sidebar) */
+        display: none;
+    }
+
+    /* Atur ulang header agar lebih rapi */
+    #app-container header .flex.justify-between.items-center {
+        justify-content: center; /* Pusatkan tombol "Nota Baru" */
+    }
+    
+    /* Sembunyikan halaman/modal lain yang mungkin terbuka secara tidak sengaja */
+    #transaksi-view,
+    #dapur-view,
+    #laporan-view,
+    #summary-view {
+      margin-left: 288px; /* Sesuaikan posisi dengan sidebar */
+    }
+}

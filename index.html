@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir - Ayam Penyet Surabaya</title>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Halal Pos" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gray-100">
+    <div id="diskon-pajak-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[70] items-center justify-center hidden p-4">
+        <div id="diskon-pajak-modal" class="modal-content bg-gray-200 rounded-lg shadow-xl w-full max-w-sm transform scale-95 opacity-0 flex flex-col">
+            <header class="bg-white text-center py-4 rounded-t-lg border-b">
+                <h1 class="font-bold text-lg text-gray-800">Ubah Nota</h1>
+                <p class="font-bold text-gray-600">Sub Total : <span id="dp-subtotal">0</span></p>
+            </header>
+            <main class="flex-1 p-4 space-y-4">
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">Diskon</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="number" id="dp-diskon-fixed" placeholder="Rp" value="0" class="w-1/2 p-2.5 text-right bg-white border rounded-lg font-bold" readonly>
+                        <input type="number" id="dp-diskon-percent" placeholder="%" value="0" class="w-1/2 p-2.5 text-right bg-white border rounded-lg font-bold">
+                        
+                        <div class="relative flex items-center bg-gray-300 rounded-lg p-1">
+                            <div id="dp-diskon-slider" class="absolute bg-white shadow-md rounded-md h-6 w-8 transition-transform duration-300 ease-in-out"></div>
+                            <button id="dp-diskon-btn-fixed" class="relative z-10 px-2 text-sm font-bold text-gray-500">Rp</button>
+                            <button id="dp-diskon-btn-percent" class="relative z-10 px-2 text-sm font-bold text-gray-800">%</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">Pajak</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="text" id="dp-pajak-fixed" readonly class="w-full p-2.5 text-right bg-gray-100 border rounded-lg font-bold">
+                        <div class="flex flex-col gap-1">
+                            <button id="dp-pajak-toggle" class="px-3 py-1 bg-yellow-300 border border-yellow-500 rounded text-yellow-800 font-bold">10%</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <footer class="grid grid-cols-2 gap-3 p-3 bg-gray-300 rounded-b-lg">
+                <button id="dp-close-btn" class="py-3 font-bold bg-white border rounded-lg">Tutup</button>
+                <button id="dp-save-btn" class="py-3 font-bold bg-slate-700 text-white rounded-lg">Simpan</button>
+            </footer>
+        </div>
+    </div>
+    <div id="edit-item-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[70] items-center justify-center hidden p-4">
+        <div id="edit-item-modal" class="modal-content bg-gray-200 rounded-lg shadow-xl w-full max-w-sm transform scale-95 opacity-0 flex flex-col">
+            <header class="bg-white text-center py-4 rounded-t-lg border-b">
+                <h1 class="font-bold text-lg text-gray-800">Ubah Produk</h1>
+            </header>
+            
+            <main class="flex-1 p-4 space-y-3">
+                <div class="flex items-center gap-4 bg-white p-3 rounded-lg border">
+                    <img id="edit-item-image" src="https://placehold.co/100x100/e2e8f0/64748b?text=Image" class="w-16 h-16 rounded-md object-cover">
+                    <div>
+                        <p id="edit-item-name" class="font-bold text-gray-800">Nama Produk</p>
+                        <p id="edit-item-price" class="font-semibold text-blue-600">Rp 0</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">Jumlah</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <button id="edit-item-minus" class="w-8 h-10 bg-white rounded-lg border text-lg font-bold">-</button>
+                        <input type="number" id="edit-item-quantity" value="1" class="w-full p-2.5 text-center bg-white border rounded-lg font-bold">
+                        <button id="edit-item-plus" class="w-8 h-10 bg-white rounded-lg border text-lg font-bold">+</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">Diskon Item</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="number" id="edit-item-discount-fixed" placeholder="Rp" value="0" class="w-1/2 p-2.5 text-right bg-white border rounded-lg font-bold">
+                        <input type="number" id="edit-item-discount-percent" placeholder="%" value="0" class="w-1/2 p-2.5 text-right bg-white border rounded-lg font-bold">
+                        
+                        <div class="relative flex items-center bg-gray-300 rounded-lg p-1">
+                            <div id="edit-item-diskon-slider" class="absolute bg-white shadow-md rounded-md h-6 w-8 transition-transform duration-300 ease-in-out"></div>
+                            <button id="edit-item-discount-btn-fixed" class="relative z-10 px-2 text-sm font-bold text-gray-800">Rp</button>
+                            <button id="edit-item-discount-btn-percent" class="relative z-10 px-2 text-sm font-bold text-gray-500">%</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="edit-item-notes" class="text-sm font-semibold text-gray-600">Catatan</label>
+                    <textarea id="edit-item-notes" rows="2" class="w-full mt-1 p-2.5 bg-white border rounded-lg"></textarea>
+                </div>
+            </main>
+            
+            <footer class="grid grid-cols-2 gap-3 p-3 bg-gray-300 rounded-b-lg">
+                <button id="edit-item-close-btn" class="py-3 font-bold bg-white border rounded-lg">Tutup</button>
+                <button id="edit-item-save-btn" class="py-3 font-bold bg-slate-700 text-white rounded-lg">Simpan</button>
+            </footer>
+        </div>
+    </div>
+    
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden opacity-0"></div>
+    <div id="sidebar" class="sidebar fixed top-0 left-0 h-full w-72 bg-white shadow-lg z-40 -translate-x-full flex flex-col">
+        <div class="bg-blue-400 p-4 text-white">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-user-circle text-5xl"></i>
+                <div>
+                    <h3 class="font-bold text-lg">Demo Account</h3>
+                    <p class="text-sm">demo</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-blue-500 p-2 text-white text-sm text-center">
+            <span id="tanggal-kerja"></span>
+        </div>
+        <nav class="flex-1 overflow-y-auto text-gray-700">
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-calendar-times w-6 text-center text-lg"></i><span>Stop Tanggal Kerja</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-sync w-6 text-center text-lg"></i><span>Sinkron Data Master</span></a>
+            <a href="#" id="buka-order-online-btn" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-mobile-alt w-6 text-center text-lg"></i><span>Order Online</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-user-check w-6 text-center text-lg"></i><span>Absensi</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-wallet w-6 text-center text-lg"></i><span>Kas Kecil</span></a>
+            <a href="#" id="buka-nota-aktif" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-receipt w-6 text-center text-lg"></i><span>Daftar Transaksi</span></a>
+            <a href="#" id="buka-laporan-btn" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-chart-pie w-6 text-center text-lg"></i><span>Laporan</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-cog w-6 text-center text-lg"></i><span>Pengaturan Aplikasi</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-life-ring w-6 text-center text-lg"></i><span>Bantuan & Langganan</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-lock w-6 text-center text-lg"></i><span>Kunci Layar</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 border-b hover:bg-gray-100"><i class="fas fa-sign-out-alt w-6 text-center text-lg"></i><span>Logout</span></a>
+        </nav>
+        <div class="p-2 text-center text-xs text-gray-500 bg-gray-100">
+            Laris POS Ver : 2.15.3.3
+        </div>
+    </div>
+    <div id="app-container" class="max-w-md mx-auto bg-white min-h-screen flex flex-col relative pb-[168px]">
+        
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20">
+            <div class="flex justify-between items-center text-sm font-medium px-4 pt-3">
+                <button id="menu-btn" class="text-2xl"><i class="fas fa-bars"></i></button>
+                <button id="nota-baru-btn" class="py-1">Nota Baru</button>
+                <button id="nota-aktif-btn" class="flex items-center gap-2 py-1">
+                    <div id="active-orders-count-badge" class="bg-amber-300 text-slate-800 text-xs font-bold w-6 h-5 rounded-md flex items-center justify-center border border-slate-600">0</div>
+                    <span>Nota Aktif</span>
+                </button>
+                <button id="daftar-meja-btn" class="py-1">Daftar Meja</button>
+            </div>
+            
+            <div class="mx-4 mt-2 border-t border-white/20"></div>
+            
+            <div class="text-center py-4">
+                <h1 class="font-bold text-lg flex items-center justify-center gap-2"><i class="fas fa-clipboard-list"></i> <span id="nota-id">Nota Baru</span></h1>
+            </div>
+            
+            <div class="flex justify-between items-center text-sm px-4 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-user"></i>
+                    <span id="customer-name-display" class="font-semibold">Umum</span>
+                </div>
+                <div id="take-away-container" class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="take-away-toggle" class="hidden">
+                    <i class="fas fa-box-open"></i>
+                    <span id="take-away-text" class="font-semibold text-slate-300">Dine In</span>
+                </div>
+            </div>
+        </header>
+        
+        <main class="flex-1">
+            <div class="grid grid-cols-12 gap-2 px-4 py-2 bg-gray-200 border-b font-bold text-gray-600 text-sm">
+                <div class="col-span-2">Jlh</div>
+                <div class="col-span-6">Produk</div>
+                <div class="col-span-4 text-right">Total</div>
+            </div>
+            <div id="order-items-container">
+                <div id="empty-cart-msg" class="h-64 flex flex-col justify-center items-center text-gray-400">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <p class="mt-4 font-semibold">Keranjang kosong</p>
+                </div>
+            </div>
+        </main>
+        
+        <button id="add-product-btn" class="absolute bottom-[180px] right-6 w-16 h-16 bg-blue-600 rounded-full text-white shadow-lg flex items-center justify-center text-3xl hover:bg-blue-700 transition z-20">
+            <i class="fas fa-plus"></i>
+        </button>
+        
+        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t z-20">
+            <div class="flex justify-between items-center px-4 py-2 bg-gray-50">
+                <div class="text-sm">
+                    <span class="font-medium">Total Produk</span>
+                    <span id="total-produk" class="font-bold ml-1">0</span>
+                </div>
+                <div class="text-sm flex items-center gap-2">
+                    <span class="font-medium">Grand Total</span>
+                    <span id="grand-total" class="font-bold text-lg">Rp 0</span>
+                    <i class="fas fa-chevron-up text-gray-500"></i>
+                </div>
+            </div>
+            <div class="grid grid-cols-5 gap-1 px-2 py-2 border-t text-center text-xs text-gray-600">
+                <button id="print-btn" class="flex flex-col items-center p-1 rounded hover:bg-gray-100"><i class="fas fa-print text-xl mb-1"></i><span>Cetak</span></button>
+                <button id="ubah-nota-btn" class="flex flex-col items-center p-1 rounded hover:bg-gray-100"><i class="fas fa-edit text-xl mb-1"></i><span>Ubah Nota</span></button>
+                <button class="flex flex-col items-center p-1 rounded hover:bg-gray-100"><i class="fas fa-tags text-xl mb-1"></i><span>Promo</span></button>
+                <button id="split-btn" class="flex flex-col items-center p-1 rounded hover:bg-gray-100"><i class="fas fa-columns text-xl mb-1"></i><span>Split</span></button>
+                <button id="cancel-btn" class="flex flex-col items-center p-1 rounded hover:bg-gray-100 text-red-500"><i class="fas fa-times-circle text-xl mb-1"></i><span>Batal Nota</span></button>
+            </div>
+            <div class="flex">
+                <button id="save-btn" class="w-1/2 bg-gray-600 text-white p-4 text-center font-bold uppercase hover:bg-gray-700">Simpan</button>
+                <button id="pay-btn" class="w-1/2 bg-blue-600 text-white p-4 text-center font-bold uppercase hover:bg-blue-700">Bayar</button>
+            </div>
+        </footer>
+    </div>
+    
+    <div id="nota-detail-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 items-center justify-center hidden p-4">
+        <div class="modal-content bg-gray-200 rounded-lg shadow-xl w-full max-w-md transform scale-95 opacity-0 flex flex-col">
+            <header class="bg-slate-700 text-white text-center py-4 rounded-t-lg">
+                <h1 class="font-bold text-lg">Detil Nota</h1>
+                <p class="text-sm">Nota Baru</p>
+            </header>
+            <main class="flex-1 p-4 space-y-4 overflow-y-auto">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm font-semibold text-gray-600">Tipe Transaksi</label>
+                        <div id="detail-tipe-transaksi" class="mt-1 p-2.5 bg-white border rounded-lg text-center font-bold">Take Away</div>
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-gray-600">Order ID</label>
+                        <input type="text" readonly class="mt-1 w-full p-2 bg-gray-100 border rounded-lg text-gray-500" placeholder="Otomatis">
+                    </div>
+                </div>
+                <div>
+                    <label for="detail-tamu-input" class="text-sm font-semibold text-gray-600">Tamu</label>
+                    <div class="relative mt-1">
+                        <input type="text" id="detail-tamu-input" value="Umum" class="w-full p-2.5 pl-4 pr-10 border bg-white rounded-lg">
+                        <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">Tot. Tamu</label>
+                    <div class="flex items-center gap-3 mt-1">
+                        <input type="number" id="detail-tamu-count" value="1" class="w-20 p-2.5 text-center bg-white border rounded-lg font-bold">
+                        <button id="detail-tamu-minus" class="w-10 h-10 bg-white rounded-lg border text-xl font-bold">-</button>
+                        <button id="detail-tamu-plus" class="w-10 h-10 bg-white rounded-lg border text-xl font-bold">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label for="detail-catatan" class="text-sm font-semibold text-gray-600">Catatan</label>
+                    <textarea id="detail-catatan" rows="2" class="w-full mt-1 p-2.5 bg-white border rounded-lg"></textarea>
+                </div>
+                <div>
+                    <label for="Person-in-charge" class="text-sm font-semibold text-gray-600">Person In Charge</label>
+                    <textarea id="Person-in-charge" rows="2" class="w-full mt-1 p-2.5 bg-white border rounded-lg"></textarea>
+                </div>
+                <div class="flex justify-between items-center bg-white p-3 rounded-lg border">
+                    <label class="font-semibold text-gray-700">Atur batas durasi</label>
+                    <label class="switch">
+                        <input type="checkbox" id="detail-durasi-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </main>
+            <footer class="grid grid-cols-2 gap-3 p-3 bg-gray-300 rounded-b-lg">
+                <button id="close-nota-detail-btn" class="py-3 font-bold bg-white border rounded-lg">Tutup</button>
+                <button id="save-nota-detail-btn" class="py-3 font-bold bg-slate-700 text-white rounded-lg">Simpan</button>
+            </footer>
+        </div>
+    </div>
+    <div id="ubah-nota-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center hidden p-4">
+        <div id="ubah-nota-modal" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-xs transform scale-95 opacity-0">
+            <div class="p-6 text-center">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Ubah Nota</h2>
+                <div class="space-y-3">
+                    <button class="w-full p-3 bg-gray-100 rounded-lg font-semibold border hover:bg-gray-200 text-gray-700">Diskon/ Pajak / Svc</button>
+                    <button class="w-full p-3 bg-gray-100 rounded-lg font-semibold border hover:bg-gray-200 text-gray-700">Biaya Tambahan</button>
+                    <button id="close-ubah-nota-btn" class="w-full p-3 mt-4 bg-white rounded-lg font-semibold border hover:bg-gray-200 text-gray-700">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="split-bill-view" class="fixed inset-0 bg-gray-100 z-[80] flex flex-col transform translate-y-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white p-4 text-center sticky top-0">
+            <h2 class="text-xl font-bold">Pisah Nota</h2>
+        </header>
+        
+        <div class="flex-1 flex flex-col p-3 gap-3 overflow-hidden">
+            <div class="flex-1 flex flex-col bg-white rounded-lg shadow border overflow-hidden">
+                <div class="p-2 bg-yellow-100 border-b">
+                    <p id="split-source-title" class="font-bold text-center text-yellow-800">ID Nota #A001</p>
+                </div>
+                <div class="grid grid-cols-12 gap-2 px-3 py-1 bg-gray-50 border-b font-bold text-gray-600 text-sm">
+                    <div class="col-span-2">Jlh</div>
+                    <div class="col-span-10">Nama Produk</div>
+                </div>
+                <div id="split-source-list" class="flex-1 overflow-y-auto">
+                </div>
+            </div>
+            
+            <div class="flex justify-center items-center gap-4 py-1">
+                <button id="split-move-up-btn" class="w-12 h-12 bg-white rounded-full shadow border flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fas fa-arrow-up text-xl"></i></button>
+                <button id="split-move-down-btn" class="w-12 h-12 bg-white rounded-full shadow border flex items-center justify-center text-gray-500 hover:bg-gray-200"><i class="fas fa-arrow-down text-xl"></i></button>
+            </div>
+            
+            <div class="flex-1 flex flex-col bg-white rounded-lg shadow border overflow-hidden">
+                <div class="p-2 bg-blue-100 border-b">
+                    <p class="font-bold text-center text-blue-800">Nota Baru</p>
+                </div>
+                <div class="grid grid-cols-12 gap-2 px-3 py-1 bg-gray-50 border-b font-bold text-gray-600 text-sm">
+                    <div class="col-span-2">Jlh</div>
+                    <div class="col-span-10">Nama Produk</div>
+                </div>
+                <div id="split-destination-list" class="flex-1 overflow-y-auto">
+                </div>
+            </div>
+        </div>
+        
+        <footer class="grid grid-cols-3 gap-3 p-3 bg-white border-t sticky bottom-0">
+            <button id="split-close-btn" class="p-3 font-bold bg-gray-200 rounded-lg">Tutup</button>
+            <button id="split-reset-btn" class="p-3 font-bold bg-gray-200 rounded-lg">Reset</button>
+            <button id="split-save-btn" class="p-3 font-bold bg-slate-700 text-white rounded-lg">Simpan</button>
+        </footer>
+    </div>
+    
+    <div id="daftar-meja-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 items-start justify-center hidden p-4">
+        <div class="modal-content bg-gray-100 rounded-lg shadow-xl w-full max-w-md transform scale-95 opacity-0 flex flex-col h-full max-h-[85vh] sm:max-h-[90vh]">
+            <header class="p-3 bg-white rounded-t-lg border-b">
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <button class="font-semibold py-2 bg-slate-200 rounded-lg border">Daftar Meja</button>
+                    <button class="font-semibold py-2 bg-white rounded-lg border text-gray-600">Denah Meja</button>
+                    <button id="area-utama-btn" class="font-semibold py-2 bg-slate-200 rounded-lg border">
+                        <span id="area-utama-display">Area utama</span>
+                    </button>
+                    <button id="meja-terisi-btn" class="font-semibold py-2 bg-white rounded-lg border text-gray-600">
+                        <span id="meja-terisi-display">Meja Terisi</span>
+                    </button>
+                </div>
+            </header>
+            
+            <main id="tables-grid-container" class="flex-1 p-3 overflow-y-auto">
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="bg-gray-200 animate-pulse p-6 h-24 rounded-lg"></div>
+                    <div class="bg-gray-200 animate-pulse p-6 h-24 rounded-lg"></div>
+                    <div class="bg-gray-200 animate-pulse p-6 h-24 rounded-lg"></div>
+                    <div class="bg-gray-200 animate-pulse p-6 h-24 rounded-lg"></div>
+                </div>
+            </main>
+            
+            <footer class="p-3 bg-white border-t rounded-b-lg">
+                <button id="close-daftar-meja-btn" class="w-full py-3 font-bold bg-gray-200 text-gray-800 rounded-lg">Tutup</button>
+            </footer>
+        </div>
+    </div>
+    
+    <div id="area-meja-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden"></div>
+    <div id="area-meja-modal" class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-white rounded-t-2xl shadow-2xl z-[60] transform translate-y-full transition-transform duration-300 ease-in-out">
+        <div class="p-4 border-b">
+            <h3 class="font-bold text-center text-lg">Area Meja</h3>
+        </div>
+        <div class="py-2">
+            <button data-area="Area Bebas" class="area-meja-option w-full text-left p-4 hover:bg-gray-100">Area Bebas</button>
+            <button data-area="Area utama" class="area-meja-option w-full text-left p-4 hover:bg-gray-100 font-semibold text-blue-600 border-l-4 border-blue-600 bg-blue-50">Area utama</button>
+            <button data-area="Area Lesehan" class="area-meja-option w-full text-left p-4 hover:bg-gray-100">Area Lesehan</button>
+        </div>
+    </div>
+    
+    <div id="meja-status-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden"></div>
+    <div id="meja-status-modal" class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-white rounded-t-2xl shadow-2xl z-[60] transform translate-y-full transition-transform duration-300 ease-in-out">
+        <div class="p-4 border-b">
+            <h3 class="font-bold text-center text-lg">Daftar Meja</h3>
+        </div>
+        <div class="py-2">
+            <button data-status="Semua" class="meja-status-option w-full text-left p-4 hover:bg-gray-100">Semua</button>
+            <button data-status="Meja Kosong" class="meja-status-option w-full text-left p-4 hover:bg-gray-100">Meja Kosong</button>
+            <button data-status="Meja Terisi" class="meja-status-option w-full text-left p-4 hover:bg-gray-100 font-semibold text-blue-600 border-l-4 border-blue-600 bg-blue-50">Meja Terisi</button>
+        </div>
+    </div>
+    <div id="print-options-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden"></div>
+    <div id="print-options-modal" class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-gray-100 rounded-t-2xl shadow-2xl z-[60] transform translate-y-full transition-transform duration-300 ease-in-out">
+        <div class="p-4">
+            <h3 class="font-bold text-center text-lg text-gray-800">Cetak</h3>
+        </div>
+        <div class="p-3 pt-0 space-y-2">
+            <button id="print-nota-btn" class="w-full flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm border hover:bg-gray-50">
+                <i class="fas fa-receipt text-xl text-blue-500 w-6 text-center"></i>
+                <span class="font-semibold text-gray-700">Cetak Nota</span>
+            </button>
+            <button id="print-dapur-btn" class="w-full flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm border hover:bg-gray-50">
+                <i class="fas fa-kitchen-set text-xl text-orange-500 w-6 text-center"></i>
+                <span class="font-semibold text-gray-700">Cetak ke Dapur</span>
+            </button>
+            <button id="print-checker-btn" class="w-full flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm border hover:bg-gray-50">
+                <i class="fas fa-clipboard-check text-xl text-green-500 w-6 text-center"></i>
+                <span class="font-semibold text-gray-700">Cetak Checker</span>
+            </button>
+        </div>
+        <div class="p-3">
+            <button id="close-print-options-btn" class="w-full p-3 bg-white rounded-lg shadow-sm border font-bold text-gray-600 hover:bg-gray-200">Tutup</button>
+        </div>
+    </div>
+    <div id="promo-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden"></div>
+    <div id="promo-modal" class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-gray-100 rounded-t-2xl shadow-2xl z-[60] transform translate-y-full transition-transform duration-300 ease-in-out">
+        <header class="p-4 border-b bg-white rounded-t-2xl">
+            <h3 class="font-bold text-center text-lg text-gray-800">Pilih Promo</h3>
+        </header>
+        <main id="promo-list-container" class="py-2 max-h-[50vh] overflow-y-auto">
+            <div class="p-8 text-center text-gray-400">Memuat promo...</div>
+        </main>
+        <footer class="grid grid-cols-2 gap-3 p-3 bg-white border-t">
+            <button id="promo-close-btn" class="p-3 font-bold bg-gray-200 rounded-lg">Tutup</button>
+            <button id="promo-select-btn" class="p-3 font-bold bg-slate-700 text-white rounded-lg">Pilih</button>
+        </footer>
+    </div>
+    <div id="product-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 items-start justify-center hidden p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl transform scale-95 opacity-0 flex flex-col h-full max-h-[90vh]">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold">Pilih Produk</h3>
+                <div class="flex items-center gap-4">
+                    <button id="open-charge-btn" class="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-calculator"></i>
+                        <span>Open Charge</span>
+                    </button>
+                    <button id="close-product-modal-btn" class="text-2xl text-gray-500 hover:text-gray-800">&times;</button>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="relative flex-grow mb-3">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input id="search-input" type="text" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+                <div id="category-filter-container" class="flex items-center gap-2 pb-2 overflow-x-auto"></div>
+            </div>
+            <div id="product-grid" class="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto p-4 pt-0"></div>
+            <div id="modal-cart-summary" class="p-4 border-t bg-gray-50">
+                <div class="flex justify-between items-center mb-3 text-sm">
+                    <div>
+                        <span class="font-medium">Total Item: </span>
+                        <span id="modal-item-count" class="font-bold">0</span>
+                    </div>
+                    <div>
+                        <span class="font-medium">Total Harga: </span>
+                        <span id="modal-total-price" class="font-bold">Rp 0</span>
+                    </div>
+                </div>
+                <button id="confirm-add-product-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    Tambahkan ke Nota
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div id="payment-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center hidden">
+        <div id="payment-main-modal" class="modal-content bg-gray-100 rounded-lg shadow-xl w-full max-w-md m-4 transform scale-95 flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-white rounded-t-lg">
+                <h3 class="text-xl font-bold">Pembayaran</h3>
+                <span id="payment-nota-id" class="text-sm font-semibold text-gray-600"></span>
+            </div>
+            <div class="p-3">
+                <p class="text-sm font-semibold mb-2 text-gray-600">Tipe Pembayaran</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <button data-method="CASH" class="payment-method-btn flex-1 p-3 border rounded-lg bg-white text-center font-semibold hover:bg-blue-50">CASH</button>
+                    <button data-method="Credit Card" class="payment-method-btn flex-1 p-3 border rounded-lg bg-white text-center font-semibold hover:bg-blue-50">Credit Card</button>
+                    <button data-method="Dana" class="payment-method-btn flex-1 p-3 border rounded-lg bg-white text-center font-semibold hover:bg-blue-50">Dana</button>
+                    <button data-method="Debit Card" class="payment-method-btn flex-1 p-3 border rounded-lg bg-white text-center font-semibold hover:bg-blue-50">Debit Card</button>
+                    <button data-method="GoPay" class="payment-method-btn flex-1 p-3 border rounded-lg bg-white text-center font-semibold hover:bg-blue-50">GoPay</button>
+                    <button data-method="Ovo" class="payment-method-btn flex-1 p-3 border rounded-lg bg-white text-center font-semibold hover:bg-blue-50">Ovo</button>
+                </div>
+            </div>
+            <div class="p-3">
+                <p class="text-sm font-semibold mb-2 text-gray-600">Daftar Pembayaran</p>
+                <div id="payment-list-container" class="bg-white h-20 rounded-lg border p-2">
+                </div>
+            </div>
+            <div class="p-3 space-y-2 text-lg">
+                <div class="flex justify-between font-bold">
+                    <span>Grand Total :</span>
+                    <span id="summary-grand-total" class="text-yellow-600">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Pembayaran :</span>
+                    <span id="summary-payment-total">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Sisa :</span>
+                    <span id="summary-sisa">0</span>
+                </div>
+                <hr>
+                <div class="flex justify-between font-bold">
+                    <span>Kembalian :</span>
+                    <span id="summary-kembalian" class="text-green-600">0</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 p-3 bg-gray-200 rounded-b-lg mt-auto">
+                <button id="close-payment-modal-btn" class="py-3 font-bold bg-white border rounded-lg">Tutup</button>
+                <button id="confirm-payment-btn" class="py-3 font-bold bg-green-500 text-white rounded-lg opacity-50" disabled>Bayar</button>
+            </div>
+        </div>
+        
+        <div id="numpad-modal" class="absolute inset-0 bg-black bg-opacity-20 z-60 items-end justify-center hidden">
+            <div class="modal-content bg-gray-200 w-full max-w-md rounded-t-2xl shadow-2xl transform translate-y-full">
+                <div class="p-4 border-b bg-white rounded-t-2xl">
+                    <p id="numpad-method-title" class="font-bold text-center text-lg">CASH</p>
+                    <p class="text-center text-gray-600">SISA: <span id="numpad-sisa" class="font-bold">0</span></p>
+                </div>
+                <div class="p-4">
+                    <input type="text" id="numpad-display" readonly class="w-full bg-yellow-100 text-right text-4xl font-bold p-3 rounded-lg border-2 border-gray-300 mb-3" value="0">
+                    <div class="flex gap-2">
+                        <div class="w-1/2 grid grid-cols-2 gap-2">
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="125000">125</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="130000">130</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="150000">150</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="200000">200</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="+10000">+10</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="+50000">+50</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="+100000">+100</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="sisa">SISA</button>
+                        </div>
+                        <div class="w-1/2 grid grid-cols-3 gap-2">
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="7">7</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="8">8</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="9">9</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="4">4</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="5">5</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="6">6</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="1">1</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="2">2</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="3">3</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white font-semibold" data-value="clear">C</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-2xl font-bold" data-value="0">0</button>
+                            <button class="numpad-btn p-3 rounded-lg bg-white text-xl" data-value="backspace"><i class="fas fa-backspace"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <button id="numpad-tutup-btn" class="w-full p-4 rounded-lg bg-white font-bold text-gray-700">Tutup</button>
+                        <button id="numpad-simpan-btn" class="w-full p-4 rounded-lg bg-blue-500 text-white font-bold">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="active-orders-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 items-center justify-center hidden">
+        <div class="modal-content bg-gray-200 rounded-lg shadow-xl w-full max-w-md m-4 transform scale-95 flex flex-col" style="max-height: 80vh;">
+            <div class="p-4 border-b bg-white rounded-t-lg">
+                <h3 class="text-xl font-bold text-center">Nota Aktif</h3>
+            </div>
+            <div id="active-orders-list" class="flex-1 p-3 overflow-y-auto space-y-3">
+            </div>
+            <div class="p-3 bg-white border-t rounded-b-lg flex justify-between items-center">
+                <span class="text-sm font-semibold">Total Trx: <span id="active-orders-trx-count">0</span></span>
+                <button id="close-active-orders-btn" class="px-8 py-2 font-bold bg-gray-200 border rounded-lg hover:bg-gray-300">Tutup</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="open-charge-modal-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-50 items-center justify-center hidden p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-sm transform scale-95 opacity-0">
+            <div class="p-5 border-b">
+                <h3 class="text-xl font-bold">Tambah Open Charge</h3>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label for="open-charge-name" class="font-semibold text-sm">Nama Item</label>
+                    <input type="text" id="open-charge-name" placeholder="Contoh: Rokok, Parkir" class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="open-charge-price" class="font-semibold text-sm">Harga</label>
+                    <input type="number" id="open-charge-price" placeholder="Masukkan harga" class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 p-5 bg-gray-100 rounded-b-lg">
+                <button id="cancel-open-charge-btn" class="py-2 font-bold bg-white border rounded-lg">Batal</button>
+                <button id="confirm-open-charge-btn" class="py-2 font-bold bg-blue-600 text-white rounded-lg">Tambahkan</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="payment-success-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[100] items-center justify-center hidden p-4">
+        <div class="modal-content bg-gray-200 rounded-lg shadow-xl w-full max-w-sm transform scale-95 opacity-0 p-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">Pembayaran Sukses</h2>
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check text-white text-lg"></i>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 text-left text-sm">
+                <div class="bg-gray-300 p-3 rounded-lg">
+                    <label class="text-gray-600 text-xs">ID Nota</label>
+                    <p id="success-nota-id" class="font-bold text-gray-800 break-words text-base">...</p>
+                </div>
+                <div class="bg-gray-300 p-3 rounded-lg">
+                    <label class="text-gray-600 text-xs">Tamu</label>
+                    <p id="success-tamu" class="font-bold text-gray-800 text-base">...</p>
+                </div>
+                <div class="bg-gray-300 p-3 rounded-lg">
+                    <label class="text-gray-600 text-xs">Grand Total</label>
+                    <p id="success-grand-total" class="font-bold text-gray-800 text-base">...</p>
+                </div>
+                <div class="bg-gray-300 p-3 rounded-lg">
+                    <label class="text-gray-600 text-xs">Total Pembayaran</label>
+                    <p id="success-total-pembayaran" class="font-bold text-gray-800 text-base">...</p>
+                </div>
+            </div>
+            
+            <div class="bg-blue-600 text-white p-4 rounded-lg text-center">
+                <label class="font-semibold opacity-80">Kembalian</label>
+                <p id="success-kembalian" class="font-bold text-4xl">...</p>
+            </div>
+            
+            <button id="lihat-nota-btn" class="w-full bg-yellow-400 text-yellow-900 font-bold py-3 rounded-lg flex items-center justify-center gap-4 hover:bg-yellow-500">
+                <span>Lihat Nota</span>
+                <div class="flex items-center gap-3 text-lg">
+                    <i class="fas fa-print"></i>
+                    <i class="fas fa-envelope"></i>
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+            </button>
+            <button id="close-success-modal-btn" class="w-full bg-blue-800 text-white font-bold py-3 rounded-lg hover:bg-blue-900">Tutup</button>
+        </div>
+    </div>
+    
+    <div id="th-status-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-[100] hidden"></div>
+    <div id="th-status-modal" class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-white rounded-t-2xl shadow-2xl z-[110] transform translate-y-full transition-transform duration-300 ease-in-out">
+        <div class="p-4 border-b">
+            <h3 class="font-bold text-center text-lg">Pilih Status</h3>
+        </div>
+        <div id="th-status-options-container" class="py-2">
+            <button data-status="Semua status" class="th-status-option w-full text-left p-4 hover:bg-gray-100">Semua status</button>
+            <button data-status="Aktif" class="th-status-option w-full text-left p-4 hover:bg-gray-100">Aktif</button>
+            <button data-status="Selesai" class="th-status-option w-full text-left p-4 hover:bg-gray-100">Selesai</button>
+        </div>
+        <div class="p-3 border-t">
+            <button id="th-status-close-btn" class="w-full p-3 font-bold bg-gray-200 rounded-lg">Tutup</button>
+        </div>
+    </div>
+    <div id="th-datepicker-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[100] items-center justify-center hidden p-4">
+        <div id="th-datepicker-modal" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-xs transform scale-95 opacity-0">
+            <header class="p-4 border-b">
+                <h3 class="font-bold text-center text-lg">Pilih Tanggal</h3>
+            </header>
+            <main class="p-4">
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <button id="th-date-plus-day" class="p-2 bg-gray-200 rounded text-xl font-bold">+</button>
+                    <button id="th-date-plus-month" class="p-2 bg-gray-200 rounded text-xl font-bold">+</button>
+                    <button id="th-date-plus-year" class="p-2 bg-gray-200 rounded text-xl font-bold">+</button>
+                    <div id="th-date-day" class="p-3 bg-yellow-100 rounded font-bold text-lg">5</div>
+                    <div id="th-date-month" class="p-3 bg-yellow-100 rounded font-bold text-lg">Sep</div>
+                    <div id="th-date-year" class="p-3 bg-yellow-100 rounded font-bold text-lg">2025</div>
+                    <button id="th-date-minus-day" class="p-2 bg-gray-200 rounded text-xl font-bold">-</button>
+                    <button id="th-date-minus-month" class="p-2 bg-gray-200 rounded text-xl font-bold">-</button>
+                    <button id="th-date-minus-year" class="p-2 bg-gray-200 rounded text-xl font-bold">-</button>
+                </div>
+            </main>
+            <footer class="grid grid-cols-2 gap-3 p-3 bg-gray-100 rounded-b-lg">
+                <button id="th-datepicker-close-btn" class="py-3 font-bold bg-white border rounded-lg">Tutup</button>
+                <button id="th-datepicker-select-btn" class="py-3 font-bold bg-slate-700 text-white rounded-lg">Pilih</button>
+            </footer>
+        </div>
+    </div>
+    
+    <div id="print-area" class="hidden"></div>
+    
+    <div id="transaksi-view" class="fixed inset-0 bg-gray-100 z-[80] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="transaksi-back-btn" class="text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Daftar Transaksi</h1>
+        </header>
+        
+        <main class="p-4 space-y-3">
+            <a href="#" id="buka-transaksi-harian-btn" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-calendar-day fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Transaksi Harian</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-calendar-alt fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Transaksi Bulanan</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-cash-register fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Transaksi Kas Kecil</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-file-invoice-dollar fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Daftar Piutang</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-user-clock fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Daftar Absen</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+        </main>
+        
+        <div id="transaksi-harian-view" class="fixed inset-0 bg-gray-100 z-[90] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+            <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+                <button id="transaksi-harian-back-btn" class="text-xl">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="font-bold text-lg">Transaksi Harian</h1>
+            </header>
+            
+            <main class="flex-1 flex flex-col overflow-hidden">
+                <div class="p-3 border-b bg-white">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="th-datepicker-btn" class="p-2 bg-gray-200 font-semibold text-gray-800 rounded-lg">Jumat, 5 Sep 2025</button>
+                        <button id="th-status-filter-btn" class="p-2 bg-white border font-semibold text-gray-700 rounded-lg">Semua status</button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-12 gap-2 px-4 py-2 bg-gray-200 border-b font-bold text-gray-600 text-sm">
+                    <div class="col-span-5">ID Nota</div>
+                    <div class="col-span-4 text-right">Total</div>
+                    <div class="col-span-3 text-center">Status</div>
+                </div>
+                
+                <div id="transaksi-harian-list" class="flex-1 overflow-y-auto">
+                    <div class="p-8 text-center text-gray-500">Memuat data...</div>
+                </div>
+                
+                <footer class="p-3 bg-white border-t text-center font-semibold text-gray-700">
+                    Total Transaksi : <span id="transaksi-harian-count">0</span>
+                </footer>
+            </main>
+        </div>
+    </div>
+    <div id="dapur-view" class="fixed inset-0 bg-gray-100 z-[80] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="dapur-back-btn" class="text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Manajemen Pesanan Online</h1>
+        </header>
+        
+        <main class="flex-1 flex gap-3 p-3 overflow-x-auto">
+            <div class="flex-shrink-0 w-72 bg-gray-200 rounded-lg flex flex-col">
+                <h2 class="font-bold text-gray-700 p-3 border-b border-gray-300">Pesanan Baru</h2>
+                <div id="kolom-baru" class="flex-1 p-2 space-y-2 overflow-y-auto">
+                </div>
+            </div>
+            
+            <div class="flex-shrink-0 w-72 bg-gray-200 rounded-lg flex flex-col">
+                <h2 class="font-bold text-gray-700 p-3 border-b border-gray-300">Sedang Disiapkan</h2>
+                <div id="kolom-disiapkan" class="flex-1 p-2 space-y-2 overflow-y-auto">
+                </div>
+            </div>
+            
+            <div class="flex-shrink-0 w-72 bg-gray-200 rounded-lg flex flex-col">
+                <h2 class="font-bold text-gray-700 p-3 border-b border-gray-300">Siap Diantar</h2>
+                <div id="kolom-diantar" class="flex-1 p-2 space-y-2 overflow-y-auto">
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="laporan-view" class="fixed inset-0 bg-gray-100 z-[80] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="laporan-back-btn" class="text-xl w-8 h-8">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg flex-grow text-center">Laporan</h1>
+            <button class="text-xl w-8 h-8">
+                <i class="fas fa-info-circle"></i>
+            </button>
+        </header>
+        
+        <main class="p-3 space-y-2 overflow-y-auto">
+            <a href="#" id="laporan-ringkasan-penjualan" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-file-invoice fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Ringkasan Penjualan</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-transaksi-harian" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-calendar-day fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Transaksi Harian</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-closing" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-chart-line fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Laporan Closing</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-penjualan-produk" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-file-invoice-dollar fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Penjualan Produk</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-penjualan-kategori" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-tags fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Penjualan Produk per Kategori</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-penjualan-modifier" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-puzzle-piece fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Penjualan Modifier</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-tipe-transaksi" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-exchange-alt fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Penjualan Tipe Transaksi</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="laporan-kas-kecil" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-cash-register fa-2x w-8 text-center text-gray-500"></i>
+                    <span class="font-semibold text-gray-700">Kas Kecil</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+        </main>
+    </div>
+    
+    <div id="summary-view" class="fixed inset-0 bg-gray-200 z-[90] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="summary-back-btn" class="text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Ringkasan Penjualan</h1>
+        </header>
+        
+        <main class="flex-1 flex flex-col p-3 gap-3 overflow-hidden">
+            <button id="summary-datepicker-btn" class="w-full p-3 bg-white font-semibold text-gray-800 rounded-lg shadow-sm border">
+                Jumat, 5 Sep 2025
+            </button>
+            
+            <div id="summary-content-area" class="flex-1 bg-white p-4 rounded-lg shadow-inner overflow-y-auto">
+                <pre id="summary-text-content" class="text-sm whitespace-pre-wrap break-words">Memuat data...</pre>
+            </div>
+        </main>
+        
+        <footer class="p-3 bg-white border-t sticky bottom-0">
+            <button id="summary-print-btn" class="w-full p-4 bg-slate-700 text-white font-bold rounded-lg hover:bg-slate-800">
+                Cetak
+            </button>
+        </footer>
+    </div>
+    
+    <div id="transaksi-detail-view" class="fixed inset-0 bg-gray-200 z-[110] flex flex-col transform translate-y-full transition-transform duration-300 ease-in-out">
+        <header class="p-4 flex justify-between items-center border-b bg-white sticky top-0">
+            <h1 class="font-bold text-lg">Detil Nota</h1>
+            <button id="td-close-btn" class="text-gray-700 font-bold py-2 px-4 rounded-lg bg-gray-200 hover:bg-gray-300">Tutup</button>
+        </header>
+        
+        <main class="flex-1 flex flex-col overflow-hidden p-3 gap-3">
+            <div class="flex justify-between items-stretch gap-3">
+                <div class="bg-yellow-200 text-yellow-800 font-bold px-4 py-2 rounded-lg text-center">
+                    <p id="td-short-id" class="text-lg">A002</p>
+                    <p id="td-full-id" class="text-xs">A050925002</p>
+                </div>
+                <div id="td-status" class="bg-yellow-200 text-yellow-800 font-bold px-6 py-2 rounded-lg flex items-center justify-center">
+                    Selesai
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto bg-white rounded-lg shadow-inner p-4">
+                <div id="td-receipt-content" class="receipt-content">
+                </div>
+            </div>
+        </main>
+        
+        <footer class="p-3 bg-white border-t grid grid-cols-5 gap-2 text-center text-xs">
+            <button id="td-print-btn" class="flex flex-col items-center p-2 rounded-lg hover:bg-gray-100"><i class="fas fa-print text-2xl mb-1"></i><span>Cetak</span></button>
+            <button id="td-email-btn" class="flex flex-col items-center p-2 rounded-lg hover:bg-gray-100"><i class="fas fa-envelope text-2xl mb-1"></i><span>Email</span></button>
+            <button id="td-whatsapp-btn" class="flex flex-col items-center p-2 rounded-lg hover:bg-gray-100"><i class="fab fa-whatsapp text-2xl mb-1"></i><span>WhatsApp</span></button>
+            <button class="flex flex-col items-center p-2 rounded-lg hover:bg-gray-100 text-gray-400" disabled><i class="fas fa-upload text-2xl mb-1"></i><span>Upload</span></button>
+            <button id="td-void-btn" class="flex flex-col items-center p-2 rounded-lg hover:bg-red-100 text-red-600"><i class="fas fa-ban text-2xl mb-1"></i><span>Void</span></button>
+        </footer>
+    </div>
+    <div id="order-online-view" class="fixed inset-0 bg-gray-100 z-[80] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="order-online-back-btn" class="text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Order Online</h1>
+        </header>
+        
+        <main class="p-3 space-y-2 overflow-y-auto">
+            <a href="#" id="buka-dapur-btn" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-kitchen-set fa-2x w-8 text-center text-purple-500"></i>
+                    <span class="font-semibold text-gray-700">Manajemen Dapur</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            <a href="#" id="buka-terima-pesanan-btn" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-satellite-dish fa-2x w-8 text-center text-green-500"></i>
+                    <span class="font-semibold text-gray-700">Terima Pesanan Online</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="buka-atur-stok-btn" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-box-open fa-2x w-8 text-center text-blue-500"></i>
+                    <span class="font-semibold text-gray-700">Atur Stok & Ketersediaan</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+            
+            <a href="#" id="buka-input-menu-btn" class="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-plus-circle fa-2x w-8 text-center text-orange-500"></i>
+                    <span class="font-semibold text-gray-700">Input Menu Baru</span>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </a>
+        </main>
+    </div>
+    
+    <div id="terima-pesanan-view" class="fixed inset-0 bg-gray-100 z-[90] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="terima-pesanan-back-btn" class="text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Terima Pesanan Online</h1>
+        </header>
+        <main id="pesanan-online-list" class="flex-1 p-3 overflow-y-auto space-y-3">
+            <div class="p-8 text-center text-gray-500">Memuat data pesanan masuk...</div>
+        </main>
+    </div>
+    
+    <div id="atur-stok-view" class="fixed inset-0 bg-gray-100 z-[90] flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <header class="bg-slate-700 text-white shadow-md sticky top-0 z-20 flex items-center p-4 gap-4">
+            <button id="atur-stok-back-btn" class="text-xl">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Atur Stok & Ketersediaan</h1>
+        </header>
+        <main id="stok-produk-list" class="flex-1 p-3 overflow-y-auto space-y-2">
+            <div class="p-8 text-center text-gray-500">Memuat data menu...</div>
+        </main>
+    </div>
+    
+    <div id="input-menu-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-[100] items-center justify-center hidden p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-sm transform scale-95 opacity-0">
+            <div class="p-5 border-b">
+                <h3 class="text-xl font-bold">Tambah Menu Baru</h3>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label for="input-menu-name" class="font-semibold text-sm">Nama Menu</label>
+                    <input type="text" id="input-menu-name" placeholder="Contoh: Nasi Goreng Spesial" class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="input-menu-price" class="font-semibold text-sm">Harga</label>
+                    <input type="number" id="input-menu-price" placeholder="Contoh: 25000" class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="input-menu-category" class="font-semibold text-sm">Kategori</label>
+                    <input type="text" id="input-menu-category" placeholder="Contoh: Makanan Utama" class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label for="input-menu-image" class="font-semibold text-sm">URL Gambar (Opsional)</label>
+                    <input type="text" id="input-menu-image" placeholder="https://..." class="w-full mt-1 p-2 border rounded-lg">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 p-5 bg-gray-100 rounded-b-lg">
+                <button id="cancel-input-menu-btn" class="py-2 font-bold bg-white border rounded-lg">Batal</button>
+                <button id="confirm-input-menu-btn" class="py-2 font-bold bg-blue-600 text-white rounded-lg">Tambahkan</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>
